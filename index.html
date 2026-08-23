@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+>
+
+<meta name="theme-color" content="#6675f5">
+
+<title>CloudParse · 多云盘解析</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+    --bg: #f5f7fb;
+    --card: #ffffff;
+    --text: #171a24;
+    --muted: #7d8495;
+    --border: #e5e8ef;
+    --primary: #6675f5;
+    --primary-dark: #4f5dde;
+    --soft: #eef0ff;
+    --success: #32a852;
+    --danger: #e04d4d;
+    --shadow: 0 18px 50px rgba(35,45,90,.08);
+}
+
+body.dark {
+    --bg: #0e1016;
+    --card: #191c24;
+    --text: #f5f7ff;
+    --muted: #989faf;
+    --border: #2a2f3a;
+    --soft: #24283f;
+    --shadow: 0 18px 50px rgba(0,0,0,.35);
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    background:
+        radial-gradient(
+            circle at 50% -10%,
+            rgba(102,117,245,.18),
+            transparent 38%
+        ),
+        var(--bg);
+    color: var(--text);
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Microsoft YaHei",
+        sans-serif;
+    transition: background .25s,color .25s;
+}
+
+button,
+input {
+    font-family: inherit;
+}
+
+.topbar {
+    width: min(1050px,calc(100% - 30px));
+    height: 72px;
+    margin: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.logo-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    color: white;
+    font-size: 22px;
+    background:
+        linear-gradient(
+            135deg,
+            #7581ff,
+            #4f5dde
+        );
+    box-shadow:
+        0 9px 25px rgba(102,117,245,.28);
+}
+
+.logo-title {
+    font-size: 19px;
+    font-weight: 800;
+}
+
+.logo-subtitle {
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.theme-button {
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--border);
+    border-radius: 13px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+}
+
+main {
+    width: min(950px,calc(100% - 30px));
+    margin: auto;
+    padding-bottom: 70px;
+}
+
+.hero {
+    text-align: center;
+    padding: 60px 15px 35px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 7px 13px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+.hero h1 {
+    font-size: clamp(38px,9vw,68px);
+    line-height: 1.06;
+    letter-spacing: -2px;
+}
+
+.hero p {
+    color: var(--muted);
+    margin-top: 18px;
+    font-size: 15px;
+}
+
+.card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 23px;
+    box-shadow: var(--shadow);
+}
+
+.input-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.input-row {
+    display: flex;
+    gap: 9px;
+}
+
+input {
+    width: 100%;
+    height: 52px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--text);
+    padding: 0 15px;
+    font-size: 14px;
+    outline: none;
+    transition: .2s;
+}
+
+input:focus {
+    border-color: var(--primary);
+    box-shadow:
+        0 0 0 4px rgba(102,117,245,.1);
+}
+
+.paste-button {
+    height: 52px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--soft);
+    color: var(--primary);
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.code-row {
+    display: flex;
+    gap: 9px;
+    margin-top: 10px;
+}
+
+.parse-button {
+    height: 52px;
+    min-width: 135px;
+    padding: 0 22px;
+    border: 0;
+    border-radius: 14px;
+    background:
+        linear-gradient(
+            135deg,
+            var(--primary),
+            var(--primary-dark)
+        );
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.parse-button:disabled {
+    opacity: .6;
+    cursor: default;
+}
+
+.supported {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 7px;
+    margin-top: 15px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.cloud-tag {
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: var(--soft);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.status {
+    margin-top: 17px;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--soft);
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.status.success {
+    color: var(--success);
+}
+
+.status.error {
+    color: var(--danger);
+}
+
+.spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-right: 7px;
+    vertical-align: -4px;
+    border:
+        3px solid rgba(102,117,245,.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.result {
+    margin-top: 20px;
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 17px;
+}
+
+.result-title {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.provider {
+    margin-top: 4px;
+    color: var(--primary);
+    font-size: 12px;
+}
+
+.result-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--soft);
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.file-list {
+    display: grid;
+    gap: 9px;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+}
+
+.file-left {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.file-icon {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--soft);
+    font-size: 18px;
+}
+
+.file-name {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.file-size {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.download-button {
+    flex: none;
+    padding: 9px 13px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--primary);
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.section {
+    margin-top: 45px;
+}
+
+.section-title {
+    margin-bottom: 15px;
+    font-size: 22px;
+}
+
+.cloud-grid {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 12px;
+}
+
+.cloud-card {
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--card);
+}
+
+.cloud-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 10px;
+    border-radius: 11px;
+    background: var(--soft);
+    color: var(--primary);
+    font-weight: 800;
+}
+
+.cloud-name {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.cloud-description {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.notice {
+    margin-top: 30px;
+    padding: 17px;
+    border: 1px solid var(--border);
+    border-radius: 17px;
+    background: var(--card);
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.notice strong {
+    color: var(--text);
+}
+
+footer {
+    width: min(950px,calc(100% - 30px));
+    margin: auto;
+    padding: 23px 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media(max-width:650px) {
+
+    .hero {
+        padding-top: 42px;
+    }
+
+    .hero h1 {
+        letter-spacing: -1px;
+    }
+
+    .input-row,
+    .code-row {
+        flex-direction: column;
+    }
+
+    .paste-button,
+    .parse-button {
+        width: 100%;
+    }
+
+    .cloud-grid {
+        grid-template-columns: repeat(2,1fr);
+    }
+
+    .file-name {
+        max-width: 190px;
+    }
+
+    footer {
+        flex-direction: column;
+        gap: 7px;
+    }
+}
+
+@media(max-width:390px) {
+
+    .cloud-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        padding: 17px;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<header class="topbar">
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            ☁
+        </div>
+
+        <div>
+
+            <div class="logo-title">
+                CloudParse
+            </div>
+
+            <div class="logo-subtitle">
+                多云盘统一解析
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <button
+        id="themeButton"
+        class="theme-button"
+        aria-label="切换主题"
+    >
+        ☾
+    </button>
+
+</header>
+
+
+
+<main>
+
+
+<section class="hero">
+
+    <div class="badge">
+        多云盘 · 文件解析 · 官方接口
+    </div>
+
+    <h1>
+        一个地方<br>
+        管理你的云盘分享
+    </h1>
+
+    <p>
+        粘贴分享链接，CloudParse 自动识别云盘平台
+    </p>
+
+</section>
+
+
+
+<section class="card">
+
+    <div class="input-title">
+        云盘分享链接
+    </div>
+
+
+    <div class="input-row">
+
+        <input
+            id="urlInput"
+            type="url"
+            autocomplete="off"
+            placeholder="粘贴百度、夸克、123 云盘等链接..."
+        >
+
+        <button
+            id="pasteButton"
+            class="paste-button"
+        >
+            粘贴
+        </button>
+
+    </div>
+
+
+    <div class="code-row">
+
+        <input
+            id="codeInput"
+            type="text"
+            autocomplete="off"
+            placeholder="提取码（如果需要）"
+        >
+
+        <button
+            id="parseButton"
+            class="parse-button"
+        >
+            开始解析
+        </button>
+
+    </div>
+
+
+    <div class="supported">
+
+        <span>支持识别：</span>
+
+        <span class="cloud-tag">
+            123云盘
+        </span>
+
+        <span class="cloud-tag">
+            百度网盘
+        </span>
+
+        <span class="cloud-tag">
+            夸克网盘
+        </span>
+
+        <span class="cloud-tag">
+            阿里云盘
+        </span>
+
+        <span class="cloud-tag">
+            OneDrive
+        </span>
+
+    </div>
+
+
+    <div
+        id="status"
+        class="status hidden"
+    ></div>
+
+</section>
+
+
+
+<section
+    id="result"
+    class="card result hidden"
+>
+
+    <div class="result-header">
+
+        <div>
+
+            <div
+                id="resultTitle"
+                class="result-title"
+            >
+                解析结果
+            </div>
+
+            <div
+                id="provider"
+                class="provider"
+            ></div>
+
+        </div>
+
+
+        <div
+            id="resultBadge"
+            class="result-badge"
+        >
+            等待解析
+        </div>
+
+    </div>
+
+
+    <div
+        id="fileList"
+        class="file-list"
+    ></div>
+
+</section>
+
+
+
+<section class="section">
+
+    <h2 class="section-title">
+        支持的云盘
+    </h2>
+
+
+    <div class="cloud-grid">
+
+        <div class="cloud-card">
+
+            <div class="cloud-icon">
+                123
+            </div>
+
+            <div class="cloud-name">
+                123云盘
+            </div>
+
+            <div class="cloud-description">
+                官方 API
+            </div>
+
+        </div>
+
+
+        <div class="cloud-card">
+
+            <div class="cloud-icon">
+                BD
+            </div>
+
+            <div class="cloud-name">
+                百度网盘
+            </div>
+
+            <div class="cloud-description">
+                官方授权
+            </div>
+
+        </div>
+
+
+        <div class="cloud-card">
+
+            <div class="cloud-icon">
+                Q
+            </div>
+
+            <div class="cloud-name">
+                夸克网盘
+            </div>
+
+            <div class="cloud-description">
+                官方授权
+            </div>
+
+        </div>
+
+
+        <div class="cloud-card">
+
+            <div class="cloud-icon">
+                +
+            </div>
+
+            <div class="cloud-name">
+                更多云盘
+            </div>
+
+            <div class="cloud-description">
+                持续增加
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+
+<div class="notice">
+
+    <strong>
+        关于 CloudParse
+    </strong>
+
+    <br>
+
+    CloudParse 通过云盘官方允许的 API、
+    OAuth 或其他合法授权方式获取用户有权访问的文件。
+    不绕过登录、验证码、会员限制或访问权限。
+
+</div>
+
+
+</main>
+
+
+
+<footer>
+
+    <span>
+        CloudParse
+    </span>
+
+    <span>
+        官方接口 · 安全访问
+    </span>
+
+</footer>
+
+
+
+<script>
+
+/*
+====================================================
+CloudParse API
+====================================================
+
+网页和后端现在位于同一个 Vercel 项目。
+
+所以不需要写：
+
+https://xxxx.vercel.app
+
+直接使用：
+
+/api
+
+这样以后换域名也不用修改这里。
+====================================================
+*/
+
+const API_BASE = "/api";
+
+
+/*
+====================================================
+元素
+====================================================
+*/
+
+const urlInput =
+    document.getElementById("urlInput");
+
+const codeInput =
+    document.getElementById("codeInput");
+
+const parseButton =
+    document.getElementById("parseButton");
+
+const pasteButton =
+    document.getElementById("pasteButton");
+
+const themeButton =
+    document.getElementById("themeButton");
+
+const status =
+    document.getElementById("status");
+
+const result =
+    document.getElementById("result");
+
+const resultTitle =
+    document.getElementById("resultTitle");
+
+const provider =
+    document.getElementById("provider");
+
+const resultBadge =
+    document.getElementById("resultBadge");
+
+const fileList =
+    document.getElementById("fileList");
+
+
+/*
+====================================================
+主题
+====================================================
+*/
+
+themeButton.addEventListener(
+    "click",
+    () => {
+
+        document.body.classList.toggle("dark");
+
+        const dark =
+            document.body.classList.contains("dark");
+
+        themeButton.textContent =
+            dark ? "☀" : "☾";
+
+    }
+);
+
+
+/*
+====================================================
+剪贴板
+====================================================
+*/
+
+pasteButton.addEventListener(
+    "click",
+    async () => {
+
+        try {
+
+            const text =
+                await navigator.clipboard.readText();
+
+            if (!text) {
+
+                showStatus(
+                    "剪贴板没有内容。",
+                    "error"
+                );
+
+                return;
+
+            }
+
+            urlInput.value = text;
+
+            showStatus(
+                "已读取剪贴板中的链接。",
+                "success"
+            );
+
+        }
+        catch {
+
+            showStatus(
+                "浏览器无法读取剪贴板，请手动粘贴链接。",
+                "error"
+            );
+
+        }
+
+    }
+);
+
+
+/*
+====================================================
+解析
+====================================================
+*/
+
+parseButton.addEventListener(
+    "click",
+    parseLink
+);
+
+
+async function parseLink() {
+
+    const url =
+        urlInput.value.trim();
+
+    const code =
+        codeInput.value.trim();
+
+
+    if (!url) {
+
+        showStatus(
+            "请先输入云盘分享链接。",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    parseButton.disabled =
+        true;
+
+
+    result.classList.remove(
+        "hidden"
+    );
+
+
+    resultTitle.textContent =
+        "正在解析";
+
+
+    provider.textContent =
+        "";
+
+
+    resultBadge.textContent =
+        "连接中";
+
+
+    fileList.innerHTML =
+        "";
+
+
+    showStatus(
+        '<span class="spinner"></span>' +
+        '正在连接 CloudParse API……'
+    );
+
+
+    try {
+
+        const response =
+            await fetch(
+                API_BASE + "/parse",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body:
+                        JSON.stringify({
+                            url,
+                            code
+                        })
+                }
+            );
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                "HTTP " +
+                response.status
+            );
+
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!data.cloud) {
+
+            throw new Error(
+                "服务器返回的数据格式不正确"
+            );
+
+        }
+
+
+        resultTitle.textContent =
+            "解析结果";
+
+
+        provider.textContent =
+            "检测到：" +
+            data.cloud.name;
+
+
+        if (data.success) {
+
+            resultBadge.textContent =
+                "解析成功";
+
+
+            showStatus(
+                data.message ||
+                "解析成功。",
+                "success"
+            );
+
+
+            if (
+                Array.isArray(data.files)
+            ) {
+
+                renderFiles(
+                    data.files
+                );
+
+            }
+
+        }
+        else {
+
+            resultBadge.textContent =
+                "等待官方 API";
+
+
+            showStatus(
+                data.message ||
+                "已经识别云盘，但该平台的官方 API 尚未配置。",
+                "success"
+            );
+
+        }
+
+    }
+    catch (error) {
+
+        console.error(error);
+
+        resultBadge.textContent =
+            "连接失败";
+
+
+        showStatus(
+            "无法连接 CloudParse API。"
+            +
+            "请确认 Vercel 已经完成部署。",
+            "error"
+        );
+
+    }
+    finally {
+
+        parseButton.disabled =
+            false;
+
+    }
+
+}
+
+
+/*
+====================================================
+文件列表
+====================================================
+*/
+
+function renderFiles(files) {
+
+    fileList.innerHTML = "";
+
+
+    if (!files.length) {
+
+        fileList.innerHTML = `
+            <div class="status">
+                当前没有可以显示的文件。
+            </div>
+        `;
+
+        return;
+
+    }
+
+
+    files.forEach(
+        file => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+
+            item.className =
+                "file-item";
+
+
+            const icon =
+                getFileIcon(
+                    file.name || ""
+                );
+
+
+            const size =
+                formatSize(
+                    file.size
+                );
+
+
+            item.innerHTML = `
+
+                <div class="file-left">
+
+                    <div class="file-icon">
+                        ${icon}
+                    </div>
+
+                    <div>
+
+                        <div
+                            class="file-name"
+                            title="${escapeHTML(
+                                file.name || ""
+                            )}"
+                        >
+                            ${escapeHTML(
+                                file.name ||
+                                "未知文件"
+                            )}
+                        </div>
+
+                        <div class="file-size">
+                            ${size}
+                        </div>
+
+                    </div>
+
+                </div>
+
+                ${
+                    file.downloadUrl
+                    ?
+                    `
+                    <button
+                        class="download-button"
+                    >
+                        下载
+                    </button>
+                    `
+                    :
+                    ""
+                }
+
+            `;
+
+
+            const button =
+                item.querySelector(
+                    ".download-button"
+                );
+
+
+            if (button) {
+
+                button.addEventListener(
+                    "click",
+                    () => {
+
+                        window.open(
+                            file.downloadUrl,
+                            "_blank",
+                            "noopener,noreferrer"
+                        );
+
+                    }
+                );
+
+            }
+
+
+            fileList.appendChild(
+                item
+            );
+
+        }
+    );
+
+}
+
+
+/*
+====================================================
+文件图标
+====================================================
+*/
+
+function getFileIcon(name) {
+
+    const ext =
+        name
+        .split(".")
+        .pop()
+        .toLowerCase();
+
+
+    if (
+        [
+            "jpg",
+            "jpeg",
+            "png",
+            "gif",
+            "webp",
+            "bmp"
+        ].includes(ext)
+    ) {
+        return "🖼️";
+    }
+
+
+    if (
+        [
+            "mp4",
+            "mkv",
+            "avi",
+            "mov",
+            "webm"
+        ].includes(ext)
+    ) {
+        return "🎬";
+    }
+
+
+    if (
+        [
+            "mp3",
+            "wav",
+            "flac",
+            "m4a"
+        ].includes(ext)
+    ) {
+        return "🎵";
+    }
+
+
+    if (
+        [
+            "zip",
+            "rar",
+            "7z",
+            "tar",
+            "gz"
+        ].includes(ext)
+    ) {
+        return "📦";
+    }
+
+
+    if (ext === "pdf") {
+        return "📕";
+    }
+
+
+    if (
+        [
+            "apk",
+            "exe",
+            "msi"
+        ].includes(ext)
+    ) {
+        return "⚙️";
+    }
+
+
+    if (
+        [
+            "iso",
+            "img"
+        ].includes(ext)
+    ) {
+        return "💿";
+    }
+
+
+    return "📄";
+}
+
+
+/*
+====================================================
+大小
+====================================================
+*/
+
+function formatSize(bytes) {
+
+    if (
+        bytes === undefined ||
+        bytes === null ||
+        bytes === ""
+    ) {
+        return "大小未知";
+    }
+
+
+    let size =
+        Number(bytes);
+
+
+    if (Number.isNaN(size)) {
+        return "大小未知";
+    }
+
+
+    const units =
+        [
+            "B",
+            "KB",
+            "MB",
+            "GB",
+            "TB"
+        ];
+
+
+    let index = 0;
+
+
+    while (
+        size >= 1024 &&
+        index < units.length - 1
+    ) {
+
+        size /= 1024;
+
+        index++;
+
+    }
+
+
+    return (
+        size.toFixed(
+            size >= 10 ? 1 : 2
+        )
+        +
+        " "
+        +
+        units[index]
+    );
+
+}
+
+
+/*
+====================================================
+状态
+====================================================
+*/
+
+function showStatus(
+    text,
+    type = ""
+) {
+
+    status.className =
+        "status";
+
+
+    if (type) {
+
+        status.classList.add(
+            type
+        );
+
+    }
+
+
+    status.innerHTML =
+        text;
+
+}
+
+
+/*
+====================================================
+HTML 安全
+====================================================
+*/
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+}
+
+</script>
+
+</body>
+
+</html>
